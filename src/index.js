@@ -65,7 +65,7 @@ async function getAvatars(username, twitter) {
         params['cursor'] = res['next_cursor_str']
     } while (params['cursor'] !== '0')
 
-    return avatars;
+    return avatars.reverse();
 }
 
 
