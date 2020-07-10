@@ -8,12 +8,14 @@ const circleImage = require('./circleImage');
 dotenv.config();
 
 async function main() {
+    //configs
+    const username = 'amiralitaheri64';
+    const skipDefaultImages = true
+
     // Create an instance of the API client using the consumer keys for your app
     const client = new Twitter({
         consumer_key: process.env.CONSUMER_KEY,
-        consumer_secret: process.env.CONSUMER_SECRET,
-        access_token_key: process.env.ACCESS_TOKEN_KEY,
-        access_token_secret: process.env.ACCESS_TOKEN_SECRET
+        consumer_secret: process.env.CONSUMER_SECRET
     });
 
     // client.get("account/verify_credentials")
@@ -23,9 +25,8 @@ async function main() {
     });
 
     //get followers
-    let username = 'SamadiPour';
     let user = await getUser(username, twitter)
-    let avatars = await getAvatars(username, twitter);
+    let avatars = await getAvatars(username, twitter, skipDefaultImages);
 
     avatars = [user, ...avatars]
 
@@ -42,7 +43,7 @@ async function getUser(username, twitter) {
     return [res.id_str, res.profile_image_url.replace('normal', '400x400'),]
 }
 
-async function getAvatars(username, twitter) {
+async function getAvatars(username, twitter, skipDefaultImages) {
     let params = {
         screen_name: username,
         count: 200,
@@ -54,13 +55,16 @@ async function getAvatars(username, twitter) {
     let avatars = []
     do {
         let res = await twitter.get('followers/list', params);
-        let temp = (
-            res['users'].map((user) => [
-                user.id_str,
-                user.profile_image_url.replace('normal', '400x400'),
-            ])
-        );
-        // avatars = Object.assign(avatars, temp)
+        let temp = res['users'].reduce((list, user) => {
+            if (!user.profile_image_url.includes('default_profile_images') || !skipDefaultImages) {
+                list.push([
+                    user.id_str,
+                    user.profile_image_url.replace('normal', '400x400')
+                ])
+            }
+            return list
+        }, [])
+
         avatars = [...avatars, ...temp]
         params['cursor'] = res['next_cursor_str']
     } while (params['cursor'] !== '0')
