@@ -1,6 +1,7 @@
-const {createCanvas, loadImage} = require('canvas');
+const {createCanvas} = require('canvas');
 const fs = require('fs');
-const ConsoleProgressBar = require('console-progress-bar')
+const ConsoleProgressBar = require('console-progress-bar');
+const imageLoader = require('./imageLoader');
 
 const toRad = (x) => x * (Math.PI / 180);
 
@@ -62,12 +63,10 @@ module.exports = async function render(followers) {
             ctx.arc(centerX, centerY, imageRadius - 2, 0, 2 * Math.PI);
             ctx.clip();
 
-            const defaultAvatarUrl =
-                "https://abs.twimg.com/sticky/default_profile_images/default_profile_200x200.png";
-            const avatarUrl = followers[counter++][1] || defaultAvatarUrl;
+            const img = await imageLoader(followers[counter++]);
+
             cpb.addValue(1);
 
-            const img = await loadImage(avatarUrl);
             ctx.drawImage(
                 img,
                 centerX - imageRadius,
